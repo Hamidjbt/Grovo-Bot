@@ -744,15 +744,15 @@ def ask_claude(chat_id: int, text: str) -> str:
     student = db.get_student(chat_id) or {}
     ctx = ""
     if student.get("full_name"):
-        ctx += f"\n[Student: {student.get('full_name')} | {student.get('specialty','')} | {student.get('year','')} | G{student.get('group_num','')} | Lang: {student.get('lang','ar')}]"
+        ctx += f"\n[Student: ...]"
     if student.get("vip_level"):
-        ctx += f"\n[VIP: {student['vip_level']} #{student.get('vip_number',0):03d}]"
+        ctx += f"\n[VIP: ...]"
 
     hist = user_history.setdefault(chat_id, [])
     hist.append({"role": "user", "content": text + ctx})
     if len(hist) > 12: hist[:] = hist[-12:]
 
-   try:
+    try:
         client = google_genai.Client(api_key=GEMINI_API_KEY)
         contents = []
         for m in hist:
