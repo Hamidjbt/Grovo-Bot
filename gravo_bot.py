@@ -11,6 +11,7 @@
 """
 
 import os, time, logging, sqlite3
+from google import genai as google_genai
 import threading, requests
 from datetime import datetime
 from pathlib import Path
