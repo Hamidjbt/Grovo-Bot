@@ -770,7 +770,8 @@ def ask_claude(chat_id: int, text: str) -> str:
             hist.append({"role":"assistant","content":reply})
             return reply
     except Exception as e:
-        log.error(f"Gemini: {e}")
+        log.error(f"Gemini ERROR: {e}")
+        log.error(f"Gemini RESPONSE: {r.text if 'r' in locals() else 'no response'}")
     lang = L(chat_id)
     return {"ar":"⚠️ خطأ مؤقت. تواصل معنا: 06 68 33 85 69",
             "fr":"⚠️ Erreur temporaire. Contactez-nous : 06 68 33 85 69",
