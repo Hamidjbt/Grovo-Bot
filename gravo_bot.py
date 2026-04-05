@@ -752,32 +752,27 @@ def ask_claude(chat_id: int, text: str) -> str:
     hist.append({"role": "user", "content": text + ctx})
     if len(hist) > 12: hist[:] = hist[-12:]
 
-    try:
+   try:
+        client = google_genai.Client(api_key=GEMINI_API_KEY)
         contents = []
         for m in hist:
             role = "model" if m["role"] == "assistant" else "user"
             contents.append({"role": role, "parts": [{"text": m["content"]}]})
-        r = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}",
-            headers={"Content-Type": "application/json"},
-            json={
-                "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
-                "contents": contents,
-            },
-            timeout=25
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=contents,
+            config={"system_instruction": SYSTEM_PROMPT}
         )
-        reply = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+        reply = response.text
         if reply:
             hist.append({"role":"assistant","content":reply})
             return reply
     except Exception as e:
         log.error(f"Gemini ERROR: {e}")
-        log.error(f"Gemini RESPONSE: {r.text if 'r' in locals() else 'no response'}")
     lang = L(chat_id)
     return {"ar":"⚠️ خطأ مؤقت. تواصل معنا: 06 68 33 85 69",
             "fr":"⚠️ Erreur temporaire. Contactez-nous : 06 68 33 85 69",
             "en":"⚠️ Temporary error. Contact us: 06 68 33 85 69"}.get(lang,"")
-
 # ══════════════════════════════════════════════════════════════
 #  لوحات المفاتيح
 # ══════════════════════════════════════════════════════════════
