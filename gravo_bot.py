@@ -26,7 +26,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 # ── إعدادات البوت ─────────────────────────────────────────────
 BOT_TOKEN         = os.environ.get("BOT_TOKEN", "ضع_TOKEN_هنا")
 ADMIN_IDS         = list(map(int, os.environ.get("ADMIN_IDS", "123456789").split(",")))
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 WHATSAPP          = "213668338569"
 TELEGRAM_ADMIN    = "HamidBnc"
 
@@ -752,23 +752,25 @@ def ask_claude(chat_id: int, text: str) -> str:
     if len(hist) > 12: hist[:] = hist[-12:]
 
     try:
+        contents = []
+        for m in hist:
+            role = "model" if m["role"] == "assistant" else "user"
+            contents.append({"role": role, "parts": [{"text": m["content"]}]})
         r = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "Content-Type": "application/json",
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
+            f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}",
+            headers={"Content-Type": "application/json"},
+            json={
+                "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+                "contents": contents,
             },
-            json={"model":"claude-sonnet-4-20250514","max_tokens":800,
-                  "system":SYSTEM_PROMPT,"messages":hist},
             timeout=25
         )
-        reply = "".join(b["text"] for b in r.json().get("content",[]) if b.get("type")=="text")
+        reply = r.json()["candidates"][0]["content"]["parts"][0]["text"]
         if reply:
             hist.append({"role":"assistant","content":reply})
             return reply
     except Exception as e:
-        log.error(f"Claude: {e}")
+        log.error(f"Gemini: {e}")
     lang = L(chat_id)
     return {"ar":"⚠️ خطأ مؤقت. تواصل معنا: 06 68 33 85 69",
             "fr":"⚠️ Erreur temporaire. Contactez-nous : 06 68 33 85 69",
