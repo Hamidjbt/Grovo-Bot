@@ -24,10 +24,11 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 # ╚══════════════════════════════════════════════════════════════╝
 
 # ── إعدادات البوت ─────────────────────────────────────────────
-BOT_TOKEN      = os.environ.get("BOT_TOKEN", "ضع_TOKEN_هنا")
-ADMIN_IDS      = list(map(int, os.environ.get("ADMIN_IDS", "123456789").split(",")))
-WHATSAPP       = "213668338569"
-TELEGRAM_ADMIN = "HamidBnc"
+BOT_TOKEN         = os.environ.get("BOT_TOKEN", "ضع_TOKEN_هنا")
+ADMIN_IDS         = list(map(int, os.environ.get("ADMIN_IDS", "123456789").split(",")))
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+WHATSAPP          = "213668338569"
+TELEGRAM_ADMIN    = "HamidBnc"
 
 # ── معلومات المحل ──────────────────────────────────────────────
 SHOP = {
@@ -753,7 +754,11 @@ def ask_claude(chat_id: int, text: str) -> str:
     try:
         r = requests.post(
             "https://api.anthropic.com/v1/messages",
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+            },
             json={"model":"claude-sonnet-4-20250514","max_tokens":800,
                   "system":SYSTEM_PROMPT,"messages":hist},
             timeout=25
