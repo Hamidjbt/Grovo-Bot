@@ -29,7 +29,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 BOT_TOKEN         = os.environ.get(“BOT_TOKEN”, “ضع_TOKEN_هنا”)
 ADMIN_IDS         = list(map(int, os.environ.get(“ADMIN_IDS”, “123456789”).split(”,”)))
-GEMINI_API_KEY = os.environ.get(“GEMINI_API_KEY”, “”)
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 WHATSAPP          = “213668338569”
 TELEGRAM_ADMIN    = “HamidBnc”
 
@@ -789,26 +789,32 @@ hist.append({"role": "user", "content": text + ctx})
 if len(hist) > 12: hist[:] = hist[-12:]
 
 try:
-    client = google_genai.Client(api_key=GEMINI_API_KEY)
-    contents = []
-    for m in hist:
-        role = "model" if m["role"] == "assistant" else "user"
-        contents.append({"role": role, "parts": [{"text": m["content"]}]})
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=contents,
-        config={"system_instruction": SYSTEM_PROMPT}
-    )
-    reply = response.text
-    if reply:
-        hist.append({"role": "assistant", "content": reply})
-        return reply
-except Exception as e:
-    log.error(f"Gemini ERROR: {e}")
-lang = L(chat_id)
-return {"ar": "⚠️ خطأ مؤقت. تواصل معنا: 06 68 33 85 69",
-        "fr": "⚠️ Erreur temporaire. Contactez-nous : 06 68 33 85 69",
-        "en": "⚠️ Temporary error. Contact us: 06 68 33 85 69"}.get(lang, "")
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "llama-3.1-8b-instant",
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT}
+                ] + hist,
+                "max_tokens": 800,
+                "temperature": 0.7,
+            },
+            timeout=25
+        )
+        reply = response.json()["choices"][0]["message"]["content"]
+        if reply:
+            hist.append({"role": "assistant", "content": reply})
+            return reply
+    except Exception as e:
+        log.error(f"Groq ERROR: {e}")
+    lang = L(chat_id)
+    return {"ar": "⚠️ خطأ مؤقت. تواصل معنا: 06 68 33 85 69",
+            "fr": "⚠️ Erreur temporaire. Contactez-nous : 06 68 33 85 69",
+            "en": "⚠️ Temporary error. Contact us: 06 68 33 85 69"}.get(lang, "")
 ```
 
 # ══════════════════════════════════════════════════════════════
